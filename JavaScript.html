@@ -1,0 +1,143 @@
+<script>
+  /**
+   * Se ejecuta cuando el contenido del DOM está completamente cargado.
+   * Inicia la carga de datos desde el servidor de Google Apps Script.
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // Muestra el loader mientras se cargan los datos.
+    document.getElementById('loader').style.display = 'flex';
+    
+    // Llama a la función del servidor 'getDirectoryData' para obtener los datos.
+    google.script.run
+      .withSuccessHandler(displayDirectory)
+      .withFailureHandler(showError)
+      .getDirectoryData();
+  });
+
+  // Variable global para almacenar los datos y evitar múltiples llamadas al servidor.
+  let allData = [];
+
+  /**
+   * Maneja la respuesta exitosa del servidor.
+   * Renderiza los datos en la tabla.
+   * @param {Array<Object>|Object} serverResponse - Los datos de las filas o un objeto de error.
+   */
+  function displayDirectory(serverResponse) {
+    // Oculta el loader
+    document.getElementById('loader').style.display = 'none';
+
+    // Comprueba si el servidor devolvió un error.
+    if (serverResponse.error) {
+      showError({ message: serverResponse.message });
+      return;
+    }
+    
+    allData = serverResponse;
+    const table = document.getElementById('directoryTable');
+    const tbody = document.getElementById('directory-body');
+    const headersRow = document.getElementById('table-headers');
+    tbody.innerHTML = ''; // Limpia el contenido previo
+    headersRow.innerHTML = ''; // Limpia los encabezados previos
+
+    if (allData.length === 0) {
+      document.getElementById('no-results-message').textContent = 'No hay documentos con links para mostrar.';
+      document.getElementById('no-results-message').style.display = 'block';
+      return;
+    }
+
+    // Muestra la tabla
+    table.style.display = 'table';
+    
+    // Generar encabezados dinámicamente
+    const headers = Object.keys(allData[0]);
+    headers.forEach(headerText => {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider';
+      th.textContent = headerText;
+      headersRow.appendChild(th);
+    });
+
+    // Llenar la tabla con los datos
+    allData.forEach(item => {
+      const row = tbody.insertRow();
+      row.className = 'hover:bg-gray-700/50 transition-colors duration-150';
+      
+      headers.forEach(header => {
+        const cell = row.insertCell();
+        cell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-300';
+        const cellValue = item[header] ? item[header].toString() : '';
+
+        // Comprobar si la celda contiene links
+        if ((header === 'LINKS DIGITALES' || header === 'LINKS ESCANEADOS') && cellValue.includes('http')) {
+          cell.innerHTML = ''; // Limpiar para agregar links
+          // Separar múltiples links (asumiendo que están separados por espacio o nueva línea)
+          const urls = cellValue.match(/https?:\/\/[^\s]+/g) || [];
+          urls.forEach((url, index) => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.textContent = `Link ${index + 1}`;
+            link.className = 'text-blue-400 hover:text-blue-300 hover:underline mr-2';
+            link.target = '_blank'; // Abrir en nueva pestaña
+            link.rel = 'noopener noreferrer';
+            cell.appendChild(link);
+          });
+        } else {
+          cell.textContent = cellValue;
+        }
+      });
+    });
+  }
+
+  /**
+   * Muestra un mensaje de error si falla la llamada al servidor.
+   * @param {Error} error - El objeto de error.
+   */
+  function showError(error) {
+    document.getElementById('loader').style.display = 'none';
+    const errorContainer = document.getElementById('error-message');
+    const errorDetails = document.getElementById('error-details');
+    errorDetails.textContent = error.message;
+    errorContainer.style.display = 'block';
+  }
+
+  /**
+   * Filtra las filas de la tabla basándose en el texto del input de búsqueda.
+   * La búsqueda es insensible a mayúsculas y minúsculas.
+   */
+  function filterDirectory() {
+    const filter = document.getElementById('searchInput').value.toUpperCase();
+    const tbody = document.getElementById('directory-body');
+    const rows = tbody.getElementsByTagName('tr');
+    let visibleRows = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      // Buscar en todas las celdas de la fila, excepto las de los links
+      const cells = row.getElementsByTagName('td');
+      let textContent = '';
+      for (let j = 0; j < cells.length; j++) {
+        const headerText = document.getElementById('table-headers').children[j].textContent;
+        if (headerText !== 'LINKS DIGITALES' && headerText !== 'LINKS ESCANEADOS') {
+          textContent += cells[j].textContent || cells[j].innerText;
+        }
+      }
+
+      if (textContent.toUpperCase().indexOf(filter) > -1) {
+        row.style.display = '';
+        visibleRows++;
+      } else {
+        row.style.display = 'none';
+      }
+    }
+    
+    // Mostrar u ocultar el mensaje de "no hay resultados"
+    const noResultsMessage = document.getElementById('no-results-message');
+    if (visibleRows === 0 && allData.length > 0) {
+        noResultsMessage.textContent = 'No se encontraron resultados para la búsqueda.';
+        noResultsMessage.style.display = 'block';
+    } else {
+        noResultsMessage.style.display = 'none';
+    }
+  }
+</script>

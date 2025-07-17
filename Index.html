@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS para un diseño moderno y responsivo -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Estilos personalizados adicionales */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Estilo para la barra de scroll */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1f2937; /* bg-gray-800 */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563; /* bg-gray-600 */
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280; /* bg-gray-500 */
+    }
+    /* Animación para el loader */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #3b82f6; /* blue-500 */
+      animation: spin 1s linear infinite;
+    }
+  </style>
+  <!-- Google Fonts para una tipografía más agradable -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+  <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Encabezado -->
+    <header class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Directorio de Documentos</h1>
+      <p class="text-lg text-gray-400">Proyectos Integradores 2025 - UNESUM</p>
+    </header>
+
+    <!-- Barra de Búsqueda -->
+    <div class="mb-6">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <!-- Icono de Lupa (SVG) -->
+          <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <input type="text" id="searchInput" onkeyup="filterDirectory()" placeholder="Buscar por estudiante, cédula, proyecto, carrera o tutor..."
+               class="block w-full bg-gray-800 border border-gray-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+      </div>
+    </div>
+
+    <!-- Contenedor de la Tabla -->
+    <div class="bg-gray-800 rounded-lg shadow-lg overflow-x-auto">
+      <!-- Loader y Mensaje de Error -->
+      <div id="loader" class="flex items-center justify-center p-16">
+        <div class="loader h-12 w-12 rounded-full"></div>
+        <p class="ml-4 text-lg">Cargando datos...</p>
+      </div>
+      <div id="error-message" class="hidden text-center p-16">
+        <p class="text-red-400 text-lg">Hubo un error al cargar los datos.</p>
+        <p id="error-details" class="text-gray-400 mt-2"></p>
+      </div>
+      <div id="no-results-message" class="hidden text-center p-16">
+        <p class="text-gray-400 text-lg">No se encontraron resultados para la búsqueda.</p>
+      </div>
+
+      <table class="min-w-full divide-y divide-gray-700 hidden" id="directoryTable">
+        <thead class="bg-gray-700/50">
+          <!-- Los encabezados se generarán dinámicamente desde el script -->
+          <tr id="table-headers"></tr>
+        </thead>
+        <tbody class="bg-gray-800 divide-y divide-gray-600" id="directory-body">
+          <!-- Las filas de datos se insertarán aquí -->
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="text-center mt-8 text-gray-500 text-sm">
+      <p>Desarrollado con Google Apps Script</p>
+    </footer>
+  </div>
+
+  <!-- Incluye el código JavaScript del cliente -->
+  <?!= include('JavaScript'); ?>
+</body>
+</html>
